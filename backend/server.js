@@ -15,6 +15,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 const db = require('./models')
+const authRoutes = require('./routes/auth.routes')
 
 const Role = db.role
 
@@ -27,6 +28,11 @@ db.sequelize.sync({ force: true }).then(() => {
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to bezkoder applications' })
 })
+
+// routes
+/* require('./routes/auth.routes')(app); */
+app.use('/api/auth', authRoutes)
+require('./routes/user.routes')(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080
@@ -50,3 +56,10 @@ function initial() {
     name: 'admin',
   })
 }
+/*
+initial() function helps us to create 3 rows in database.
+In development, you may need to drop existing tables and re-sync database.
+So you can use force: true as code above.
+For production, just insert these rows manually
+and use sync() without parameters to avoid dropping data:
+*/
