@@ -43,3 +43,5 @@ const verifySignUp = {
   checkDuplicateUsernameOrEmail,
   checkRolesExisted,
 }
+
+module.exports = verifySignUp
