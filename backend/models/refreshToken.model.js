@@ -14,7 +14,7 @@ module.exports = (sequelize, Sequelize) => {
   RefreshToken.createToken = async function (user) {
     const expiredAt = new Date()
 
-    expiredAt.setSeconds(expiredAt.getSeconds() + config.jwtRefeshExpiration)
+    expiredAt.setSeconds(expiredAt.getSeconds() + config.jwtRefreshExpiration)
 
     const _token = uuidv4()
 
@@ -27,7 +27,7 @@ module.exports = (sequelize, Sequelize) => {
     return refreshToken.token
   }
 
-  RefreshToken.verifyExpiration = (token) => token.expiryDate.getTime() < new Date().getTime()
+  RefreshToken.verifyExpiration = (token) => token.expiryDate < new Date().getTime()
 
   return RefreshToken
 }

@@ -13,13 +13,13 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
           .then((user) => {
             if (user) {
               return res.status(400).send({ message: 'Failed! Email already in use!' })
-              return null
+              return;
             }
             next()
           })
       } else {
         return res.status(400).send({ message: 'Failed! Username is already in use!' })
-        return null
+        return;
       }
       // eslint-disable-next-line no-useless-return
     })
@@ -36,7 +36,7 @@ const checkRolesExisted = (req, res, next) => {
     for (let i = 0; i < roles.length; i++) {
       if (!ROLES.includes(roles[i])) {
         return res.status(400).send({ message: `Failed! Role does not exist = ${roles[i]}` })
-        return null
+        return;
       }
     }
   }

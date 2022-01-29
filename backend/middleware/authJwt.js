@@ -62,11 +62,11 @@ const isModeratorOrAdmin = (req, res, next) => {
       for (let i = 0; i < roles.length; i++) {
         if (roles[i].name === 'moderator') {
           next()
-          return
+          return;
         }
         if (roles[i].name === 'admin') {
           next()
-          return
+          return;
         }
       }
       res.status(403).send({
@@ -81,6 +81,7 @@ const authJwt = {
   isAdmin,
   isModerator,
   isModeratorOrAdmin,
+  catchError,
 }
 
 module.exports = authJwt

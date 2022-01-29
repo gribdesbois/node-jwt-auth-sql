@@ -2,14 +2,11 @@ const express = require('express')
 const cors = require('cors')
 
 const app = express()
-
-const corsOptions = {
-  origin: 'htpp://localhost:8081',
-}
-app.use(cors(corsOptions))
-
 // parse requests of content-type - application/json
 app.use(express.json())
+
+app.use(cors())
+app.options('*', cors())
 
 // parse request of content-type -application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }))
@@ -31,7 +28,14 @@ app.get('/', (req, res) => {
 
 // routes
 /* require('./routes/auth.routes')(app); */
-app.use('/api/auth', authRoutes)
+app.use('/api/auth',
+  (req, res, next) => {
+    res.header(
+      'Access-Control-Allow-Headers',
+      'x-access-token, Origin, Content-Type, Accept',
+    );
+    next();
+  }, authRoutes)
 require('./routes/user.routes')(app);
 
 // set port, listen for requests

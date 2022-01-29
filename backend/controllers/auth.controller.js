@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken')
+const jwt_decode = require('jwt-decode')
 const bcrypt = require('bcryptjs')
 const db = require('../models')
 const config = require('../config/auth.config')
+const { catchError } = require('../middleware/authJwt')
 
 const { user: User, role: Role, refreshToken: RefreshToken } = db
 
@@ -60,7 +62,8 @@ exports.signin = (req, res) => {
 
       const refreshToken = await RefreshToken.createToken(user)
 
-      const authorities = []
+      // eslint-disable-next-line prefer-const
+      let authorities = []
       user.getRoles().then((roles) => {
         for (let i = 0; i < roles.length; i++) {
           authorities.push(`ROLE_${roles[i].name.toUpperCase()}`)
@@ -81,37 +84,48 @@ exports.signin = (req, res) => {
 }
 
 exports.refreshToken = async (req, res) => {
-  const { refreshToken: requestToken } = req.body
+  const { refreshToken: requestToken } = req.body;
 
   if (requestToken == null) {
-    return res.status(403).json({ message: 'Refresh Token is required!' })
+    return res.status(403).json({ message: 'Refresh Token is required!' });
   }
+  /* const decodedToken = jwt_decode(requestTokenEncoded, config.secret)
+  const { token } = decodedToken */
 
   try {
-    const refreshToken = await RefreshToken.findOne({ where: { token: requestToken } })
+    const refreshToken = await RefreshToken.findOne({ where: { token: requestToken } });
+
     console.log(refreshToken)
 
     if (!refreshToken) {
-      res.status(403).json({ message: 'Refresh token is not in database!' })
-      return
-    }
-    if (RefreshToken.verifyExpiration(refreshToken)) {
-      RefreshToken.destroy({ where: { id: refreshToken.id } })
-
-      res.status(403).json({ message: 'Refresh token was expired. Please make a new signin request' })
-      return
+      res.status(403).json({ message: 'Refresh token is not in database!' });
+      return;
     }
 
-    const user = await refreshToken.getUser()
+    if (RefreshToken.verifyExpiration(refreshToken) === true) {
+      RefreshToken.destroy({ where: { id: refreshToken.id } });
+
+      res.status(403).json({
+        message: 'Refresh token was expired. Please make a new signin request',
+      });
+      return;
+    }
+
+    const user = await refreshToken.getUser();
     const newAccessToken = jwt.sign({ id: user.id }, config.secret, {
       expiresIn: config.jwtExpiration,
+    });
+    const expiredAt = new Date()
+    expiredAt.setSeconds(expiredAt.getSeconds() + config.jwtRefreshExpiration)
+    const newRefresh = await refreshToken.update({
+      expiryDate: expiredAt.getTime(),
     })
 
     return res.status(200).json({
       accessToken: newAccessToken,
       refreshToken: refreshToken.token,
-    })
+    });
   } catch (err) {
-    return res.status(500).send({ message: err })
+    return res.status(500).send({ message: err });
   }
-}
+};
